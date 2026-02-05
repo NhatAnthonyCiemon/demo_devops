@@ -32,6 +32,16 @@ jobs:
                   echo "IMAGE_NAMESPACE=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
                   echo "BACKEND_IMAGE=${{ env.REGISTRY }}/${GITHUB_REPOSITORY,,}/demo-backend:latest" >> $GITHUB_ENV
                   echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${GITHUB_REPOSITORY,,}/demo-frontend:latest" >> $GITHUB_ENV
+            # ================= COPY DOCKER-COMPOSE.YML TO VM =================
+            - name: Copy docker-compose.yml to VM
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                  host: ${{ secrets.SERVER_IP }}
+                  username: ${{ secrets.USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  source: "docker-compose.yml"
+                  target: "/app/"
+                  overwrite: true
 
             # ================= SSH DEPLOY =================
             - name: Deploy via SSH
