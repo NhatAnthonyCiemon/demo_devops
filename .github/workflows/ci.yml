@@ -57,8 +57,8 @@ jobs:
             - name: Build & Push Backend
               uses: docker/build-push-action@v5
               with:
-                  context: ./backend
-                  file: ./backend/Dockerfile
+                  context: ./be
+                  file: ./be/Dockerfile
                   push: ${{ github.event_name == 'push' }}
                   tags: ${{ steps.meta_backend.outputs.tags }}
                   labels: ${{ steps.meta_backend.outputs.labels }}
@@ -103,8 +103,8 @@ jobs:
             - name: Build & Push Frontend
               uses: docker/build-push-action@v5
               with:
-                  context: ./frontend
-                  file: ./frontend/Dockerfile
+                  context: ./fe
+                  file: ./fe/Dockerfile
                   push: ${{ github.event_name == 'push' }}
                   build-args: |
                       VITE_API_URL=${{ secrets.VITE_API_URL }}
