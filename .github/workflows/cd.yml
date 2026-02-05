@@ -40,7 +40,7 @@ jobs:
                   username: ${{ secrets.USER }}
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   source: "docker-compose.yml"
-                  target: "/app/"
+                  target: "/home/deploy/app/"
                   overwrite: true
 
             # ================= SSH DEPLOY =================
