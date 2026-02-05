@@ -33,7 +33,7 @@ const authController = {
             res.json(
                 createResponse(200, "success", {
                     access_token: token,
-                })
+                }),
             );
         } catch (error) {
             console.log("error", error);
@@ -46,8 +46,8 @@ const authController = {
             res.status(400).json(
                 createErrorResponse(
                     400,
-                    "Email, Username and Password are required"
-                )
+                    "Email, Username and Password are required",
+                ),
             );
             return;
         }
@@ -55,7 +55,7 @@ const authController = {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
             res.status(400).json(
-                createErrorResponse(400, "Invalid email format")
+                createErrorResponse(400, "Invalid email format"),
             );
             return;
         }
@@ -64,8 +64,8 @@ const authController = {
             res.status(400).json(
                 createErrorResponse(
                     400,
-                    "Password must be at least 6 characters long"
-                )
+                    "Password must be at least 6 characters long",
+                ),
             );
             return;
         }
@@ -74,7 +74,7 @@ const authController = {
             const existUser = await User.findUserByEmail(email);
             if (existUser) {
                 res.status(409).json(
-                    createErrorResponse(409, "Email already taken")
+                    createErrorResponse(409, "Email already taken"),
                 );
                 return;
             }
@@ -82,7 +82,7 @@ const authController = {
             const user = await User.createUserLocal(email, username, password);
             if (!user) {
                 res.status(400).json(
-                    createErrorResponse(400, "User not created")
+                    createErrorResponse(400, "User not created"),
                 );
                 return;
             }
@@ -90,7 +90,7 @@ const authController = {
             res.status(200).json(
                 createResponse(200, "success", {
                     user_id: user.id,
-                })
+                }),
             );
         } catch (error) {
             console.log("Lỗi 1", error);
@@ -112,7 +112,7 @@ const authController = {
                     id: user.id,
                     email: user.email,
                     username: user.username,
-                })
+                }),
             );
         } catch (error) {
             console.log("error", error);
@@ -136,7 +136,7 @@ const authController = {
                 return res
                     .status(400)
                     .json(
-                        createErrorResponse(400, "Invalid email or password")
+                        createErrorResponse(400, "Invalid email or password"),
                     );
             }
             if (user.is_verify === false) {
@@ -158,7 +158,7 @@ const authController = {
                 createResponse(200, "success", {
                     access_token: token,
                     refresh_token: refreshToken,
-                })
+                }),
             );
         } catch (error) {
             console.log("error", error);
