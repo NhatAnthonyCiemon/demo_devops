@@ -27,7 +27,8 @@ jobs:
         steps:
             - name: Checkout source
               uses: actions/checkout@v4
-
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
             # Generate metadata
             - name: Extract metadata (Backend)
               id: meta_backend
@@ -72,7 +73,8 @@ jobs:
         steps:
             - name: Checkout source
               uses: actions/checkout@v4
-
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
             # Generate metadata
             - name: Extract metadata (Frontend)
               id: meta_frontend
