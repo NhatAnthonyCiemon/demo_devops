@@ -68,13 +68,15 @@ jobs:
                       docker pull $BACKEND_IMAGE
                       docker pull $FRONTEND_IMAGE
 
-                      # ================= DB MIGRATION (PRISMA) =================
+                      echo "🔄 Restart services..."
+                      docker compose up -d postgres
+
+                      echo "⏳ Waiting for DB..."
+                      sleep 10
+
                       echo "🗄️ Running Prisma migrate..."
                       docker compose run --rm backend npx prisma db push
 
-                      # ================= RESTART SERVICE =================
-                      echo "🔄 Restart services..."
-                      docker compose down
                       docker compose up -d
 
                       # ================= CLEAN =================
