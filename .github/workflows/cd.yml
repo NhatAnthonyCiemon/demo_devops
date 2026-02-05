@@ -7,6 +7,8 @@ on:
         workflows: ["CI - Build & Push Images"]
         types:
             - completed
+        branches:
+            - main
 
 env:
     REGISTRY: ghcr.io
@@ -66,7 +68,7 @@ jobs:
                       echo "🗄️ Running Prisma migrate..."
 
                       docker compose run --rm backend \
-                        npx prisma migrate deploy
+                        npx prisma db push
 
 
                       # ================= RESTART SERVICE =================
