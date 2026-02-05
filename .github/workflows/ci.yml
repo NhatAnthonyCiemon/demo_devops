@@ -1,0 +1,112 @@
+# =====================================
+# CI Pipeline - Build & Push FE + BE
+# Clean & Maintainable Version
+# With PR Check (No Push on PR)
+# =====================================
+
+name: CI - Build & Push Images
+
+on:
+    push:
+        branches: ["main"]
+
+    pull_request:
+        branches: ["main"]
+
+    workflow_dispatch:
+
+env:
+    REGISTRY: ghcr.io
+    IMAGE_NAMESPACE: ${{ github.repository }}
+
+jobs:
+    build-backend:
+        name: Build Backend
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v4
+
+            # Generate metadata
+            - name: Extract metadata (Backend)
+              id: meta_backend
+              uses: docker/metadata-action@v5
+              with:
+                  images: |
+                      ghcr.io/${{ github.repository }}/demo-backend
+                  tags: |
+                      type=raw,value=latest
+                      type=sha
+                  labels: |
+                      org.opencontainers.image.title=demo-backend
+                      org.opencontainers.image.description=Demo DevOps Backend Service
+                      org.opencontainers.image.source=https://github.com/${{ github.repository }}
+                      org.opencontainers.image.authors=Thanh Nhat <nhatmonsterhack@gmail.com>
+
+            # Login only on push
+            - name: Login GHCR
+              if: github.event_name == 'push'
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.TOKEN }}
+
+            - name: Build & Push Backend
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./backend
+                  file: ./backend/Dockerfile
+                  push: ${{ github.event_name == 'push' }}
+                  tags: ${{ steps.meta_backend.outputs.tags }}
+                  labels: ${{ steps.meta_backend.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+    # ================= FRONTEND =================
+    build-frontend:
+        name: Build Frontend
+        runs-on: ubuntu-latest
+        needs: build-backend
+
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v4
+
+            # Generate metadata
+            - name: Extract metadata (Frontend)
+              id: meta_frontend
+              uses: docker/metadata-action@v5
+              with:
+                  images: |
+                      ghcr.io/${{ github.repository }}/demo-frontend
+                  tags: |
+                      type=raw,value=latest
+                      type=sha
+                  labels: |
+                      org.opencontainers.image.title=demo-frontend
+                      org.opencontainers.image.description=Demo DevOps Frontend App
+                      org.opencontainers.image.source=https://github.com/${{ github.repository }}
+                      org.opencontainers.image.authors=Thanh Nhat <nhatmonsterhack@gmail.com>
+
+            # Login only on push
+            - name: Login GHCR
+              if: github.event_name == 'push'
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.TOKEN }}
+
+            - name: Build & Push Frontend
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./frontend
+                  file: ./frontend/Dockerfile
+                  push: ${{ github.event_name == 'push' }}
+                  build-args: |
+                      VITE_API_URL=${{ secrets.VITE_API_URL }}
+                  tags: ${{ steps.meta_frontend.outputs.tags }}
+                  labels: ${{ steps.meta_frontend.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
