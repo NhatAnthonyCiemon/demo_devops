@@ -4,7 +4,6 @@ import { getAuthContext } from "../contexts/useAuthContext";
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
 });
-
 axiosInstance.interceptors.request.use((config) => {
     const auth = getAuthContext();
     if (auth?.accessToken) {
@@ -32,7 +31,7 @@ axiosInstance.interceptors.response.use(
         }
 
         return Promise.reject(error);
-    }
+    },
 );
 
 export default axiosInstance;
