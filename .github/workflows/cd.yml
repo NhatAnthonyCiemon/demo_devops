@@ -12,26 +12,26 @@ on:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE_NAMESPACE: ${{ github.repository }}
 
 jobs:
     deploy:
         name: Deploy to Server
         runs-on: ubuntu-latest
 
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        # Chỉ chạy khi CI success
+        if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
         steps:
             # ================= CHECKOUT =================
             - name: Checkout
               uses: actions/checkout@v4
 
-            # ================= SET IMAGE TAG =================
-            - name: Set Image Version
-              id: vars
+            # ================= SET IMAGE NAMESPACE (LOWERCASE) =================
+            - name: Set image namespace (lowercase)
               run: |
-                  echo "BACKEND_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/demo-backend:latest" >> $GITHUB_ENV
-                  echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/demo-frontend:latest" >> $GITHUB_ENV
+                  echo "IMAGE_NAMESPACE=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+                  echo "BACKEND_IMAGE=${{ env.REGISTRY }}/${GITHUB_REPOSITORY,,}/demo-backend:latest" >> $GITHUB_ENV
+                  echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${GITHUB_REPOSITORY,,}/demo-frontend:latest" >> $GITHUB_ENV
 
             # ================= SSH DEPLOY =================
             - name: Deploy via SSH
@@ -41,47 +41,34 @@ jobs:
                   username: ${{ secrets.USER }}
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   script: |
-
                       set -e
 
                       echo "🚀 Start Deploy..."
-
                       cd /home/deploy/app
 
-
                       # ================= LOGIN GHCR =================
-                      echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
+                      echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
                       # ================= EXPORT IMAGE =================
                       export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
                       export FRONTEND_IMAGE=${{ env.FRONTEND_IMAGE }}
-
 
                       # ================= PULL NEW IMAGE =================
                       echo "📦 Pull new images..."
                       docker pull $BACKEND_IMAGE
                       docker pull $FRONTEND_IMAGE
 
-
                       # ================= DB MIGRATION (PRISMA) =================
                       echo "🗄️ Running Prisma migrate..."
-
-                      docker compose run --rm backend \
-                        npx prisma db push
-
+                      docker compose run --rm backend npx prisma db push
 
                       # ================= RESTART SERVICE =================
                       echo "🔄 Restart services..."
-
                       docker compose down
-
                       docker compose up -d
-
 
                       # ================= CLEAN =================
                       echo "🧹 Cleanup old images..."
                       docker image prune -f
-
 
                       echo "✅ Deploy completed!"
